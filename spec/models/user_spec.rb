@@ -12,21 +12,21 @@ describe User do
   
   describe "should have an invitation" do
     it "to a event" do
-      event  = Event.generate!
+      event  = Event.generate!(:owner => @from_user)
       invite = Invite.send!(@from_user, @to_user, "", event)
       @to_user.received_invites[0].id.should           == invite.id
       @to_user.received_invites[0].invitable_id.should == event.id
     end
     
     it "to a group" do
-      group  = Group.generate!
+      group  = Group.generate!(:owner => @from_user)
       invite = Invite.send!(@from_user, @to_user, "", group)
       @to_user.received_invites[0].id.should           == invite.id
       @to_user.received_invites[0].invitable_id.should == group.id
     end
     
     it "to a project" do
-      project = Project.generate!
+      project = Project.generate!(:owner => @from_user)
       invite  = Invite.send!(@from_user, @to_user, "", project)
       @to_user.received_invites[0].id.should           == invite.id
       @to_user.received_invites[0].invitable_id.should == project.id
@@ -35,21 +35,19 @@ describe User do
   
   describe "should have" do
     it "a pending invitation" do
-      invite = Invite.send!(@from_user, @to_user, "", Event.generate!)
+      invite = Invite.send!(@from_user, @to_user, "", Event.generate!(:owner => @from_user))
       @to_user.pending_invites[0].id.should == invite.id
     end
     
     it "an accepted invitation" do
-      invite = Invite.send!(@from_user, @to_user, "", Event.generate!)
-      invite.accept
-      invite.save!
+      invite = Invite.send!(@from_user, @to_user, "", Event.generate!(:owner => @from_user))
+      invite.accept!
       @to_user.accepted_invites[0].id.should == invite.id
     end
     
     it "an ignored invitation" do
-      invite = Invite.send!(@from_user, @to_user, "", Event.generate!)
-      invite.ignore
-      invite.save!
+      invite = Invite.send!(@from_user, @to_user, "", Event.generate!(:owner => @from_user))
+      invite.ignore!
       @to_user.ignored_invites[0].id.should == invite.id
     end
   end

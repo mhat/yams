@@ -23,15 +23,15 @@ class Invite < ActiveRecord::Base
   # set the status to _ignored_
   #
   def ignore!()
-    status = Invite::Status::IGNORED
+    self.status = Invite::Status::IGNORED
     save!
   end
   
-  # set the status to _accepted_.
+  # set the status to _accepted_ and adds +User+ to _memberable_
   #
   def accept!()
-    status = Invite::Status::ACCEPTED
-    inviteable.add invitee
+    self.status = Invite::Status::ACCEPTED
+    invitable.add_member invitee
     save!
   end
   

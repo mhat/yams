@@ -8,6 +8,7 @@ describe Invite do
     Invite.create! do |invite|
       invite.invitee_user_id = User.generate!.id
       invite.inviter_user_id = User.generate!.id
+      invite.note = ''
     end
   end
 end

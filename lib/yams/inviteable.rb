@@ -2,15 +2,15 @@ module YAMS::Inviteable
   
   # Ensure that _Inviteable_ models implement methed:: public
   #
-  def public
-    raise NoMethodError, "implementation missing for method: public"
-  end
+  #def public
+  #  raise NoMethodError, "implementation missing for method: public"
+  #end
   
   # Ensure that _Inviteable_ models implement method:: owner
   #
-  def owner
-    raise NoMethodError, "implementation missing for method: owner"
-  end
+  #def owner
+  #  raise NoMethodError, "implementation missing for method: owner"
+  #end
   
   # Convince method to determine if this _Inviteable_ is public
   #
@@ -48,6 +48,8 @@ module YAMS::Inviteable
       has_many    :pending_invites,  :as => :invitable, :class_name => "Invite", :conditions => { :status => Invite::Status::PENDING  }
       has_many    :accepted_invites, :as => :invitable, :class_name => "Invite", :conditions => { :status => Invite::Status::ACCEPTED }
       has_many    :ignored_invites,  :as => :invitable, :class_name => "Invite", :conditions => { :status => Invite::Status::IGNORED  }
+      
+      validates_presence_of :owner
     end
   end
 end
