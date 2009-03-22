@@ -12,4 +12,14 @@ class ApplicationController < ActionController::Base
   # Uncomment this to filter the contents of submitted sensitive data parameters
   # from your application log (in this case, all fields with names like "password"). 
   # filter_parameter_logging :password
+  
+  before_filter :authenticate
+  
+  protected
+  def authenticate
+    authenticate_or_request_with_http_basic("YAMS-REST-API") do |username,password|
+      logger.debug("u=#{username} p=#{password}")
+      User.authenticate(username, password)
+    end
+  end
 end
