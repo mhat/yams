@@ -51,8 +51,59 @@ class Invite < ActiveRecord::Base
     return user.id == inviter_user_id
   end
   
+  
+  
+  def self.search (params={})
+    from     = params[:from]     || nil
+    to       = params[:to]       || nil
+    types    = params[:types]    || []
+    statuses = params[:statuses] || []
+    
+    
+    conditions = EZ::Where::Condition.new :invites do
+      
+      ## filter: sender and receiver
+      any do 
+        inviter_user_id == from.id if from
+        invitee_user_id == to.id   if to
+      end
+      
+      ## filter: type of invitable
+      any do
+        types.each do |arg|
+          case arg.downcase
+          when 'event'   then invitable_type == 'Event'
+          when 'group'   then invitable_type == 'Group'
+          when 'project' then invitable_type == 'Project'
+          end
+        end
+      end
+      
+      ## filter: invitation status
+      status_list = []
+      statuses.each do |arg|
+        case arg.downcase
+        when 'pending'  then status_list.push Invite::Status::PENDING
+        when 'ignored'  then status_list.push Invite::Status::IGNORED
+        when 'accepted' then status_list.push Invite::Status::ACCEPTED
+        end
+      end
+      
+      ## build the filter, yo.
+      status === status_list
+      
+    end
+    
+    return Invite.find(:all, :conditions => conditions )
+  end
+  
+  
+  
+  
   ## class methods
   def self.send! (from_user, to_user, note, invitable)
+    raise ArgumentError if from_user == to_user
+    
     return Invite.create! do |invite|
       invite.inviter   = from_user
       invite.invitee   = to_user
