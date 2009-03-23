@@ -14,7 +14,9 @@ describe User do
   
   describe "security" do
     it "should encrypt the password" do 
-      User.generate!(:password => "test").password != "test"
+      user = User.generate!
+      user.password  = "test"
+      user.password != "test"
     end
   
     it "should not authenticate user" do
@@ -24,12 +26,17 @@ describe User do
     
     it "should authenticate user" do
       user = User.generate!
-      User.authenticate(user.email_address, user.password).should == true
+      user.password = "hello nurse"
+      user.save!
+      User.authenticate(user.email_address, "hello nurse").should == true
     end
     
     it "should authenticate and set current_user" do
       user = User.generate!
-      User.authenticate(user.email_address, user.password).should == true
+      user.password = "hello nurse"
+      user.save!
+
+      User.authenticate(user.email_address, "hello nurse").should == true
       User.current_user.should == user
     end
   end

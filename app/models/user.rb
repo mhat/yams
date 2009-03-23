@@ -53,10 +53,10 @@ class User < ActiveRecord::Base
   # Authenticate the povided credentials, if authentic then make the user
   # available throughout this +Thread+.
   #
-  def self.authenticate(email_address, password_hash)
+  def self.authenticate(email_address, password)
     # verify the users credential
     requested_user = User.find_by_email_address(email_address)
-    return false if requested_user.password_hash != password_hash
+    return false unless requested_user.password == password
     
     # this makes makes current_user available throughout
     User.current_user = requested_user
