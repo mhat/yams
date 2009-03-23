@@ -18,7 +18,6 @@ class ApplicationController < ActionController::Base
   protected
   def authenticate
     authenticate_or_request_with_http_basic("YAMS-REST-API") do |username,password|
-      logger.debug("u=#{username} p=#{password}")
       User.authenticate(username, password)
     end
   end
