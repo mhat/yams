@@ -25,6 +25,7 @@ class User < ActiveRecord::Base
   
   
   ## validators
+  validates_presence_of :screen_name
   validates_presence_of :email_address
   validates_presence_of :password_hash
   

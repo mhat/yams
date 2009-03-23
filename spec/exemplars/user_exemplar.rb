@@ -1,8 +1,13 @@
 class User < ActiveRecord::Base
-  generator_for :email_address, :start => "user1@example.com" do |prev|
-    name, domain = prev.split('@')
-    name.succ!
-    [name,domain].join('@')
+  
+  generator_for :screen_name   do
+    token = sprintf("%x", Time.now.to_f*(10**5))
+    "user_#{token}"
+  end
+  
+  generator_for :email_address do 
+    token = sprintf("%x", Time.now.to_f*(10**5))
+    "user_#{ token }@domain.com"
   end
   
   generator_for :password_hash do |prev|

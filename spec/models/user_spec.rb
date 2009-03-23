@@ -1,16 +1,42 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe User do
-  before(:each) do
-    @from_user = User.generate!
-    @to_user   = User.generate!
+  
+  
+  
+  it "should generate a new instance" do
+    User.generate!
   end
   
-  it "should create a new instance" do
-    User.create!
+  it "should not create a blank instance" do
+    lambda { User.create! }.should raise_error(ActiveRecord::RecordInvalid)
   end
+  
+  describe "security" do
+    it "should encrypt the password" do 
+      User.generate!(:password => "test").password != "test"
+    end
+  
+    it "should not authenticate user" do
+      user = User.generate!
+      User.authenticate(user.email_address, "invalid-password").should == false
+    end
+    
+    it "should authenticate user" do
+      user = User.generate!
+      User.authenticate(user.email_address, user.password).should == true
+    end
+    
+  end
+  
+  
   
   describe "should have an invitation" do
+    before(:each) do
+      @from_user = User.generate!
+      @to_user   = User.generate!
+    end
+    
     it "to a event" do
       event  = Event.generate!(:owner => @from_user)
       invite = Invite.send!(@from_user, @to_user, "", event)
@@ -33,7 +59,14 @@ describe User do
     end
   end
   
+  
+  
   describe "should have" do
+    before(:each) do
+      @from_user = User.generate!
+      @to_user   = User.generate!
+    end
+    
     it "a pending invitation" do
       invite = Invite.send!(@from_user, @to_user, "", Event.generate!(:owner => @from_user))
       @to_user.pending_invites[0].id.should == invite.id
