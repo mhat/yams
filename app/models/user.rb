@@ -24,7 +24,7 @@ class User < ActiveRecord::Base
   has_many :ignored_invites,  :class_name => 'Invite', :foreign_key => 'invitee_user_id', :conditions => { :status => Invite::Status::IGNORED   }
   
   
-  ## validators
+  ## validating
   validates_presence_of :screen_name
   validates_presence_of :email_address
   validates_presence_of :password_hash
@@ -34,6 +34,10 @@ class User < ActiveRecord::Base
   
   
   ## instance methods 
+  
+  def invites
+    return Invite.search :from => user, :to => user
+  end
   
   def password
     @password ||= Password.new(password_hash)
@@ -45,9 +49,28 @@ class User < ActiveRecord::Base
   end
   
   ## class methods 
+  
+  # Authenticate the povided credentials, if authentic then make the user
+  # available throughout this +Thread+.
+  #
   def self.authenticate(email_address, password_hash)
-    return false unless User.find_by_email_address(email_address).password.to_s == password_hash
+    # verify the users credential
+    requested_user = User.find_by_email_address(email_address)
+    return false if requested_user.password_hash != password_hash
+    
+    # this makes makes current_user available throughout
+    User.current_user = requested_user
     return true
+  end
+  
+  # mutator to set the +current_user+
+  def self.current_user= (user)
+    Thread.current[:user] = user
+  end
+  
+  # accessor to get the +current_user+
+  def self.current_user
+    return Thread.current[:user]
   end
   
 end

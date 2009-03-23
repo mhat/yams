@@ -27,6 +27,11 @@ describe User do
       User.authenticate(user.email_address, user.password).should == true
     end
     
+    it "should authenticate and set current_user" do
+      user = User.generate!
+      User.authenticate(user.email_address, user.password).should == true
+      User.current_user.should == user
+    end
   end
   
   
