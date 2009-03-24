@@ -48,6 +48,17 @@ class User < ActiveRecord::Base
     self.password_hash = @password
   end
   
+  # returns a sanitized hash suitable for sending to a rest client
+  def to_rest
+    return {
+      'user_id'       => id,
+      'screen_name'   => screen_name,
+      'email_address' => email_address, 
+      'created_at'    => created_at,
+      'updated_at'    => updated_at
+    }
+  end
+  
   ## class methods 
   
   # Authenticate the povided credentials, if authentic then make the user
@@ -71,6 +82,14 @@ class User < ActiveRecord::Base
   # accessor to get the +current_user+
   def self.current_user
     return Thread.current[:user]
+  end
+
+  # search for screen names like 
+  def self.search_by_partial_screen_name (name)
+    criteria = EZ::Where::Condition.new :users do 
+      screen_name =~ "#{name}%"
+    end
+    return User.find(:all, :conditions => criteria)
   end
   
 end

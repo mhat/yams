@@ -41,6 +41,24 @@ describe User do
     end
   end
   
+  describe "search" do
+    it "should not return any users" do
+      User.search_by_partial_screen_name("blah").size.should == 0
+    end
+    
+    it "should return one user" do
+      user = User.generate! :screen_name => "monkey"
+      User.search_by_partial_screen_name("monk").size.should == 1
+    end
+    
+    it "should return two users" do
+      user1 = User.generate! :screen_name => "matt"
+      user2 = User.generate! :screen_name => "mark"
+      user3 = User.generate! :screen_name => "paul"
+      User.search_by_partial_screen_name("ma").size.should == 2
+    end
+  end
+  
   
   
   describe "should have an invitation" do

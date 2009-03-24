@@ -1,6 +1,6 @@
 ActionController::Routing::Routes.draw do |map|
   
-  map.resources :users,       :only => [        :show                  ]
+  map.resources :users,       :only => [:index, :show                  ]
   map.resources :invites,     :only => [:index, :show, :create, :delete]
   map.resources :memberships, :only => [:index,        :create, :delete]
   
