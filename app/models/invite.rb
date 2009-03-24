@@ -1,5 +1,6 @@
 class Invite < ActiveRecord::Base
-  # constants
+  
+  ## constants
   module Status
     PENDING  = 0
     ACCEPTED = 1
@@ -11,7 +12,7 @@ class Invite < ActiveRecord::Base
   belongs_to :invitee,   :class_name  => "User", :foreign_key => 'invitee_user_id'
   belongs_to :inviter,   :class_name  => "User", :foreign_key => 'inviter_user_id'
   
-  ## validators 
+  ## validations 
   validates_associated      :invitee, :inviter, :invitable
   validates_length_of       :note,    :maximum      => 255
   validates_numericality_of :status,  :only_integer => true
@@ -20,7 +21,8 @@ class Invite < ActiveRecord::Base
   
   ## instance methods 
   
-  # set the status to _ignored_
+  # Set status to +ignored+ and if this +Invite+ has previously been accepted
+  # the invitee +User+ will be removed from Invitable.
   #
   def ignore!()
     self.status = Invite::Status::IGNORED
@@ -28,7 +30,7 @@ class Invite < ActiveRecord::Base
     save!
   end
   
-  # set the status to _accepted_ and adds +User+ to _memberable_
+  # Sets status to +accepted+ and adds the invitee +User+ to the Invitable.
   #
   def accept!()
     self.status = Invite::Status::ACCEPTED
@@ -56,6 +58,33 @@ class Invite < ActiveRecord::Base
   
   ## class methods
   
+  # Syntatic shortcut to create! Returns a freshly created +Invite+ or a
+  # piping hot exception for your exceptional pleasure.
+  # 
+  def self.send! (from_user, to_user, note, invitable)
+    raise ArgumentError if from_user == to_user
+    
+    return Invite.create! do |invite|
+      invite.inviter   = from_user
+      invite.invitee   = to_user
+      invite.note      = note
+      invite.invitable = invitable
+    end
+  end
+  
+  
+  
+  # Handy search builder using on EZ::Where! Specifically this provides an
+  # easy way to construct queries of the form: 
+  #     (From    OR To                ) AND
+  #     (Event   OR Group   OR Project) AND
+  #     (Pending OR Ignored OR Active )
+  # This is accomplished simply by passing any of the following parameters:
+  # * :from     => +User+ 
+  # * :to       => +User+
+  # * :types    => +Array+ with zero or more of the values Event, Group or Project
+  # * :statuses => +Array+ with zero or more of the values Pending, Ignored, or Active
+  #
   def self.search (params={})
     from     = params[:from]     || nil
     to       = params[:to]       || nil
@@ -100,15 +129,5 @@ class Invite < ActiveRecord::Base
     return Invite.find(:all, :conditions => conditions )
   end
   
-  def self.send! (from_user, to_user, note, invitable)
-    raise ArgumentError if from_user == to_user
-    
-    return Invite.create! do |invite|
-      invite.inviter   = from_user
-      invite.invitee   = to_user
-      invite.note      = note
-      invite.invitable = invitable
-    end
-  end
 end
 
