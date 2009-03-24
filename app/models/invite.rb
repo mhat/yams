@@ -8,8 +8,8 @@ class Invite < ActiveRecord::Base
   
   ## associations
   belongs_to :invitable, :polymorphic => true
-  belongs_to :invitee, :class_name => "User", :foreign_key => 'invitee_user_id'
-  belongs_to :inviter, :class_name => "User", :foreign_key => 'inviter_user_id'
+  belongs_to :invitee,   :class_name  => "User", :foreign_key => 'invitee_user_id'
+  belongs_to :inviter,   :class_name  => "User", :foreign_key => 'inviter_user_id'
   
   ## validators 
   validates_associated      :invitee, :inviter, :invitable
@@ -53,6 +53,8 @@ class Invite < ActiveRecord::Base
   end
   
   
+  
+  ## class methods
   
   def self.search (params={})
     from     = params[:from]     || nil
@@ -98,10 +100,6 @@ class Invite < ActiveRecord::Base
     return Invite.find(:all, :conditions => conditions )
   end
   
-  
-  
-  
-  ## class methods
   def self.send! (from_user, to_user, note, invitable)
     raise ArgumentError if from_user == to_user
     
