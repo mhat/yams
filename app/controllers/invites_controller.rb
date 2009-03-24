@@ -77,7 +77,14 @@ class InvitesController < ApplicationController
   end
   
   # DELETE /invites
-  def delete
+  #   delete an invite, only possible if the current user created the invite
+  def destroy
+    respond_to do |format|
+      format.json do
+        invite = current_user.sent_invites.find(params[:invite_id])
+        invite.delete
+      end
+    end
   end
   
 end
