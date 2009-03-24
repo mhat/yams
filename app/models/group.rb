@@ -1,4 +1,3 @@
 class Group < ActiveRecord::Base
-  include YAMS::Memberable
-  include YAMS::Inviteable
+  include YAMS::Joinable
 end
