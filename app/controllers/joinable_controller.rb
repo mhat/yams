@@ -3,12 +3,17 @@ class JoinableController < ApplicationController
   
   
   # GET /events
+  #   return an array of inviteables that the current_user either owns or is
+  #   a member of!
+  #
   def index
     klass   = controller_to_model_class
-    results = klass.find_all_by_owner_user_id(current_user)
+    results = []
+    results.concat klass.find_all_by_owner_user_id(current_user)
+    results.concat current_user.joinable_by_class(klass)
     
     respond_to do |format|
-      format.json { render :json => results }
+      format.json { render :json => results.uniq }
     end
   end
   
