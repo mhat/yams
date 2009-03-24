@@ -8,6 +8,10 @@ class CreateInvites < ActiveRecord::Migration
       t.references :invitable,        :polymorphic => true
       t.timestamps
     end
+    
+    add_index :invites, [:inviter_user_id]
+    add_index :invites, [:invitee_user_id]
+    add_index :invites, [:status]
   end
 
   def self.down
