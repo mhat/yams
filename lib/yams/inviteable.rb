@@ -18,6 +18,11 @@ module YAMS::Inviteable
     self.public
   end
   
+  # Convince method to determine if the provided user is the owner
+  def owner? (user)
+    user == owner
+  end
+  
   # Convince method to determin if +User+ has been invited to this _Inviteable_
   # by someone already. 
   #

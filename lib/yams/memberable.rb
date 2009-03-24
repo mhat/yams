@@ -32,7 +32,7 @@ module YAMS::Memberable
       after_create            :add_owner_as_member
       private
         def add_owner_as_member
-          members << owner
+          add_member(owner)
         end
     end
   end
