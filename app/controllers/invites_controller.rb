@@ -44,6 +44,27 @@ class InvitesController < ApplicationController
     end
   end
   
+  
+  # PUT /invites/1
+  #   update the status of an invite received by _current_user_
+  #
+  # parameters
+  #   status, one of <accepted, ignored>
+  #
+  def update
+    invite = current_user.received_invites.find(params[:id])
+    
+    case params[:status].downcase
+      when 'accepted' then invite.accept!
+      when 'ignored'  then invite.ignore!
+    end
+    
+    respond_to do |format|
+      format.json { render :json => invite }
+    end
+  end
+    
+  
   # POST /invites
   #   send an invite to a user for an _invitable_ provided that you are a
   #   member of that invitable
