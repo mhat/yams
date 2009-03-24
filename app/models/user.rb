@@ -39,6 +39,7 @@ class User < ActiveRecord::Base
     return Invite.search :from => user, :to => user
   end
   
+  
   def password
     @password ||= Password.new(password_hash)
   end
@@ -57,6 +58,14 @@ class User < ActiveRecord::Base
       'created_at'    => created_at,
       'updated_at'    => updated_at
     }
+  end
+  
+  # get a joinable collection by passing in a joinable class
+  def joinable_by_class (klass=nil)
+    return events   if klass == Event
+    return groups   if klass == Group
+    return projects if klass == Project
+    return nil
   end
   
   ## class methods 
