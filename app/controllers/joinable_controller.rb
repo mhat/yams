@@ -8,12 +8,10 @@ class JoinableController < ApplicationController
   #
   def index
     klass   = controller_to_model_class
-    results = []
-    results.concat klass.find_all_by_owner_user_id(current_user)
-    results.concat current_user.joinable_by_class(klass)
+    results = klass.find_all_by_owner_user_id(current_user)
     
     respond_to do |format|
-      format.json { render :json => results.uniq }
+      format.json { render :json => results }
     end
   end
   
