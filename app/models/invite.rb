@@ -24,6 +24,7 @@ class Invite < ActiveRecord::Base
   #
   def ignore!()
     self.status = Invite::Status::IGNORED
+    invitable.remove_member invitee
     save!
   end
   
