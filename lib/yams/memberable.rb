@@ -10,7 +10,7 @@ module YAMS::Memberable
   # is not a member.
   #
   def remove_member(user)
-    members.remove user if has_member? user
+    members.delete user if has_member? user
   end
   
   # Convince method to determine if a +User+ is a member.
