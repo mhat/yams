@@ -7,6 +7,9 @@ class Invite < ActiveRecord::Base
     IGNORED  = 2
   end
   
+  ## permissions
+  has_restful_permissions
+  
   ## associations
   belongs_to :invitable, :polymorphic => true
   belongs_to :invitee,   :class_name  => "User", :foreign_key => 'invitee_user_id'
@@ -42,7 +45,7 @@ class Invite < ActiveRecord::Base
   # saying:: invite.invitee == user, you can say invite.invitee? user, if
   # that sounds better to you.
   #
-  def invitee? (user)
+  def invitee?(user)
     return user.id == invitee_user_id
   end
   
@@ -50,11 +53,21 @@ class Invite < ActiveRecord::Base
   # saying:: invite.inviter == user, you can say invite.inviter? user, if
   # that sounds better to you.
   #
-  def inviter? (user)
+  def inviter?(user)
     return user.id == inviter_user_id
   end
   
+  # Permissions: if the actor is the invitee, they may update the invite
+  def updatable_by?(actor)
+    return true if actor == invitee
+    return false
+  end
   
+  # Premissions: if the actor is the inviter, they may delete the invite
+  def destroyable_by(actor)
+    return true if actor == inviter
+    return false
+  end
   
   ## class methods
   

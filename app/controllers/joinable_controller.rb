@@ -2,12 +2,11 @@ class JoinableController < ApplicationController
   
   
   
-  # GET /events
-  #   return an array of inviteables that the current_user either owns or is
-  #   a member of!
-  #
+  # GET /joinables
   def index
     klass   = controller_to_model_class
+    raise PermissionViolation unless klass.listable_by?(current_user)
+    
     results = klass.find_all_by_owner_user_id(current_user)
     
     respond_to do |format|
@@ -15,20 +14,15 @@ class JoinableController < ApplicationController
     end
   end
   
-  # GET /events/1
+  # GET /joinables/1
   def show
     klass    = controller_to_model_class
     joinable = klass.find(params[:id])
+    raise PermissionViolation unless joinable.visibale_by?(current_user)
     
-    ## only show event details if the following criteria are met
-    raise ActiveRecord::RecordNotFound unless joinable.public? \
-      || joinable.owner?(current_user)      \
-      || joinable.has_member?(current_user) \
-      || joinable.has_invite?(current_user) 
-    
-    ## collect and rest-ify the members of this joinable
     members  = joinable.members.map{|user| user.to_rest }
     
+        
     respond_to do |format|
       format.json do
         render :json => { 'joinable' => joinable, 'members' => members }
@@ -36,28 +30,33 @@ class JoinableController < ApplicationController
     end
   end
   
-  # POST /events
+  # POST /joinables
   def create 
     klass    = controller_to_model_class
+    raise PermissionViolation unless klass.creatable_by?(current_user)
+    
     joinable = klass.create
     joinable.public = true
     joinable.owner  = current_user
     joinable.save!
     
-    render :json => joinable
+    respond_to do |format|
+      format.json { render :json => joinable }
+    end
   end
   
-  # DELETE /events
+  # DELETE /joinables
   def destroy 
     klass    = controller_to_model_class
     joinable = current_user.joinable_by_class(klass).find(params[:id])
+    raise PermissionViolation unless joinable.destroyable_by?(current_user)
+    
     joinable.delete
     
     respond_to do |format|
       format.json { render :json => [{'status' => 'ok'}] }
     end
   end
-  
   
   
   

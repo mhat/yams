@@ -2,6 +2,8 @@ require 'bcrypt'
 
 class User < ActiveRecord::Base
   include BCrypt
+  ## permissions
+  has_restful_permissions
   
   ## associations 
   
@@ -31,11 +33,7 @@ class User < ActiveRecord::Base
   validates_presence_of :email_address
   validates_presence_of :password_hash
   
-  
-  
   ## callbacks
-  
-  
   
   ## instance methods 
   

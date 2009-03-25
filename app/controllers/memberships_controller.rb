@@ -7,24 +7,27 @@ class MembershipsController < ApplicationController
   # * type[] : one of <event, group, project>, stackable
   #
   def index
-    response = []
+    ## FIXME: i *should* have a permission check here but it's not easy to do
+    ## while joinable is a module mix-in rather than a class extending AR
+    ## raise PermissionViolation unless ... 
+    
+    
+    ## a little work to make sure we're only given valid types
+    joinable_type = YAMS.arrayify(params[:type]).select {
+      |type|
+      allowed_type_parameters.select { |atype| atype==type }
+    }
+    
+    ## if no valid types were presented, use all of the defaults
+    joinable_type = allawed_type_parameters if joinable_type.size == 0
+    
+    ## collect the joinables, e.g. events, groups & projects
+    response = joinable_type.map { |type| 
+      user.joinable_by_class(type_parameter_to_class(type))
+    }.flatten
     
     respond_to do |format|
-      format.json do
-        
-        ## determine if a type was provided, if not try to grab everything
-        params[:type] = ['event', 'group', 'project'] if !params[:type]
-        
-        [ params[:type] ].flatten.each do |type|
-          case type.downcase
-          when 'event'   then response << current_user.events
-          when 'group'   then response << current_user.groups
-          when 'project' then response << current_user.projects
-          end
-        end
-        
-        render :json => response.flatten
-      end
+      format.json { render :json => response }
     end
   end
   
@@ -33,19 +36,16 @@ class MembershipsController < ApplicationController
   #
   # parameters
   #   id 
+  #   type
   def create
-    joinable = case params[:type].downcase
-    when 'event'   then Event.find(params[:id])
-    when 'group'   then Group.find(params[:id])
-    when 'project' then Project.find(params[:id])
-    end
+    joinable = type_parameter_to_class(params[:type]).find(params[:id])
     
-    joinable.add_member current_user if joinable.public?
+    raise PermissionViolation unless joinable.member_addable_by?(current_user)
+    
+    joinable.add_member current_user
     
     respond_to do |format|
-      format.json do
-        render :json => [{'status' => 'ok'}]
-      end
+      format.json { render :json => [{'status' => 'ok'}] }
     end
   end
   
@@ -59,38 +59,32 @@ class MembershipsController < ApplicationController
   # * member_id : required, the id of the user to remove
   #
   def destroy
-    status   = []
     member   = User.find(params[:member_id])
-    joinable = case params[:type].downcase
-    when 'event'   then Event.find(params[:id])
-    when 'group'   then Group.find(params[:id])
-    when 'project' then Project.find(params[:id])
-    end
+    joinable = type_parameter_to_class(params[:type].find(params[:id]))
     
-    if joinable.owner? current_user
-      ## the current_user may only remove other-users from a joinable if
-      ## they are the owner and they are not removing themselves.
-      if member == current_user
-        status = [{'message' => 'not allowed'}]
-      else
-        joinable.remove_member member
-        status = [{'message' => 'success'}]
-      end
-      
-    elsif joinable.has_member? member
-      ## the current_user may only remove themselves from joinables that
-      ## they are not the owner of
-      if member != current_user
-        status = [{'message' => 'not allowed'}]
-      else
-        joinable.remove_member member
-        status = [{'message' => 'success'}]
-      end
-    end
+    raise PermissionViolation unless joinable.member_removeable_by?(member, current_user)
+    
+    joinable.remove_member member
     
     respond_to do |format|
-      format.json { render :json => status }
+      format.json { render :json => [{'status' => 'ok'}] }
     end
   end
   
+  
+  
+  private 
+  def allowed_type_parameters 
+    return ['event', 'group', 'project']
+  end
+  
+  def type_parameter_to_class (type)
+    case type.downcase
+    when 'event'   then return Event
+    when 'group'   then return Group
+    when 'project' then return Project
+    else
+      throw ArgumentError, "invalid type"
+    end
+  end
 end

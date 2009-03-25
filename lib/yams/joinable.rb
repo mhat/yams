@@ -14,6 +14,7 @@ module YAMS
     def owner? (user)
       user == owner
     end
+    alias :is_owner? :owner?
     
     # Convince method to determin if +User+ has been invited to this _Joinable_
     # by someone already. 
@@ -50,8 +51,38 @@ module YAMS
       Invite.send!(user_from, user_to, note, self)
     end
     
+    # Permissions: Determins if Actor is allowed to Remove member. An actor may
+    # remove themselves from ANY joinable *provided* they are not the owner. An
+    # actor may remove ANY user from a joinable *provided* they ARE the owner!
+    #
+    def member_removeable_by?(member, actor)
+      return true if has_member?(member) && !is_owner?(actor)
+      return true if has_member?(member) &&  is_owner?(actor) &&  actor != member
+      return false
+    end
     
+    # Permissions: An actor may add themselves to any public _joinable_.
+    def member_addable_by?(actor)
+      return true if public?
+      return false
+    end
     
+    # Permissions: An actor may view this _joinable_ if it is public, if they
+    # are the owner, if they are a member or if they have an invite.
+    def viewable_by?(actor)
+      return true if joinable.public?  \
+        || joinable.owner?(actor)      \
+        || joinable.has_member?(actor) \
+        || joinable.has_invite?(actor) 
+        
+      return false
+    end
+    
+    # Permission: An actor may remove this _joinable_ if they are the owner
+    def destroyable_by?(actor)
+      return true if actor == owner
+      return false
+    end
     
     def self.included(base)
       base.class_eval do
@@ -74,14 +105,18 @@ module YAMS
         validates_presence_of :owner
         
         ## callbacks
-        after_create :add_owner_as_member
+        after_create   :add_owner_as_member
+        before_destroy :remove_all_members
+        
+        ## enable restful permissions
+        has_restful_permissions
         
         ## private instance methods
         private
+        
         def add_owner_as_member
           add_member(owner)
         end
-        
       end
     end
   end
