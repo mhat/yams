@@ -93,8 +93,9 @@ See above:Joinable
   
   DELETE /memberships
   parameters
+    required _id_ the id of the event, group or project, must be in the URI,
+                  this is a bug
     required _type_ the type, one of event, group or project
-    required _id_   the id of the event, group or project
     required _member_id_ the id of the user to remove
     required __method_=DELETE unless your client supports HTTP DELETE.
     

@@ -113,5 +113,57 @@ describe User do
       invite.ignore!
       @to_user.ignored_invites[0].id.should == invite.id
     end
+    
+    it "all of the users invites" do 
+      Invite.send!(@from_user, @to_user,   "", Event.generate!(:owner => @from_user))
+      Invite.send!(@to_user,   @from_user, "", Event.generate!(:owner => @to_user))
+      @from_user.invites.size.should == 2
+    end
   end
+  
+  describe "sanitization" do
+    before(:each) do
+      @user = User.generate!
+    end
+    
+    it "should remove password and email_address" do
+      safe = @user.to_rest
+      (!safe.has_key?(:password) && !safe.has_key?(:email_address)).should == true
+    end
+    
+    it "should remove password only" do
+      User.current_user = @user
+      safe = @user.to_rest
+      (!safe.has_key?(:password) && safe.has_key?(:email_address)).should == true
+    end
+  end
+  
+  describe "joinable hack" do
+    before(:each) do
+      @user = User.generate!
+    end
+    
+    it "should return an array of events given Event" do
+      Event.generate!(:owner => @user)
+      Event.generate!(:owner => @user)
+      @user.joinable_by_class(Event).size.should == 2
+    end
+    
+    it "should return an array of events given Group" do
+      Group.generate!(:owner => @user)
+      Group.generate!(:owner => @user)
+      @user.joinable_by_class(Group).size.should == 2
+    end
+    
+    it "should return an array of events given Project" do
+      Project.generate!(:owner => @user)
+      Project.generate!(:owner => @user)
+      @user.joinable_by_class(Project).size.should == 2
+    end
+    
+    it "should return nil given rubbish" do
+      @user.joinable_by_class(nil).should == nil
+    end
+  end
+    
 end

@@ -40,7 +40,7 @@ class User < ActiveRecord::Base
   # Returns a list of +Invites+ that +User+ either sent or is the recepiant of!
   #
   def invites
-    return Invite.search :from => user, :to => user
+    return Invite.search :from => self, :to => self
   end
   
   # Returns a bcrypt password object suitable for verification
@@ -56,6 +56,13 @@ class User < ActiveRecord::Base
     self.password_hash = @password
   end
   
+  
+  # Permissions: if current_user == actor, win
+  def updatable_by?(actor)
+    return true if actor == User.current_user
+    return false
+  end
+  
   # Returns a sanitized hash of this +User. Sanitization will always hide the
   # users password, if User.current_user != self, then the self.email_address
   # will also be sanitized. 
@@ -67,8 +74,10 @@ class User < ActiveRecord::Base
     safe.store :created_at,    created_at
     safe.store :updated_at,    updated_at
     safe.store :email_address, email_address if self == User.current_user
-    return hash
+    return safe
   end
+  
+  
   
   # Returns a _Joinable_ collection scoped to +User+ for the provided class.
   # The idea here is to be able to get to user.events.find when you could be
@@ -92,6 +101,8 @@ class User < ActiveRecord::Base
   def self.authenticate(email_address, password)
     # verify the users credential
     requested_user = User.find_by_email_address(email_address)
+    raise ActiveRecord::RecordNotFound unless requested_user
+    
     return false unless requested_user.password == password
     
     # this makes makes current_user available throughout

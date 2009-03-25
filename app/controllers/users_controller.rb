@@ -9,7 +9,7 @@ class UsersController < ApplicationController
     
     response = []
     response = User.search_by_partial_screen_name(params[:query]).map{|user| user.to_rest} \
-      if params[:query] && params[:query].length > 2
+      if params[:query] && params[:query].length >= 2
     
     respond_to do |format|
       format.json { render :json => response }

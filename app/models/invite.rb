@@ -64,10 +64,18 @@ class Invite < ActiveRecord::Base
   end
   
   # Premissions: if the actor is the inviter, they may delete the invite
-  def destroyable_by(actor)
+  def destroyable_by?(actor)
     return true if actor == inviter
     return false
   end
+  
+  # Returns a sanitized hash of this +Invite. There's nothing to sanitize
+  # in +Invite right now so this method returns all attributes.
+  def to_rest
+    return attributes
+  end
+  
+  
   
   ## class methods
   

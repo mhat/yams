@@ -15,13 +15,27 @@ class ApplicationController < ActionController::Base
   
   
   def rescue_action (ex)
-    respond_to do |format| 
-      case ex
-      when ActiveRecord::RecordNotFound then
-        format.json { render :json => [{'status' => 404}]  }
-      else
-        ## handles any raised exception with a 500
-        format.json { render :json => [{'status' => 500}]  }
+    case ex
+    when ArgumentError then
+      respond_to do |format| 
+        format.json { render :json => [{'status' => 400}], :status => 400  }
+      end
+    when PermissionViolation then
+      respond_to do |format| 
+        format.json { render :json => [{'status' => 403}], :status => 403  }
+      end
+    when ActiveRecord::RecordNotFound then
+      respond_to do |format| 
+        format.json { render :json => [{'status' => 404}], :status => 404  }
+      end
+    when ActionController::MethodNotAllowed then
+      respond_to do |format| 
+        format.json { render :json => [{'status' => 405}], :status => 405  }
+      end
+    else
+      ## handles any raised exception with a 500
+      respnod to do |format|
+        format.json { render :json => [{'status' => 500}], :status => 500  }
       end
     end
   end

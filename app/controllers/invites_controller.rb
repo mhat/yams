@@ -22,7 +22,9 @@ class InvitesController < ApplicationController
       :from   => params[:kind].select{|v| v.downcase == 'sent'    }.empty?? nil : current_user,
       :to     => params[:kind].select{|v| v.downcase == 'received'}.empty?? nil : current_user,
       :types  => params[:type], 
-      :status => params[:status] ## FIXME: Why no Status in Searches? 
+      :status => params[:status]
+    
+    response.map!{ |invite| invite.to_rest }
     
     respond_to do |format|
       format.json { render :json => response }
@@ -38,6 +40,7 @@ class InvitesController < ApplicationController
     response = []
     response.concat current_user.sent_invites.find_all_by_id(params[:id])
     response.concat current_user.received_invites.find_all_by_id(params[:id])
+    response.map!{|invite| invite.to_rest}
     
     respond_to do |format|
       format.json { render :json => response }
@@ -53,7 +56,7 @@ class InvitesController < ApplicationController
   #
   def update
     invite = current_user.received_invites.find(params[:id])
-    raise PermissionViolation unless current_user.updateable?(current_user)
+     raise PermissionViolation unless current_user.updatable_by?(current_user)
     
     case params[:status].downcase
       when 'accepted' then invite.accept!
@@ -61,7 +64,7 @@ class InvitesController < ApplicationController
     end
     
     respond_to do |format|
-      format.json { render :json => invite }
+      format.json { render :json => [invite.to_rest] }
     end
   end
   
@@ -85,24 +88,23 @@ class InvitesController < ApplicationController
       when 'project' then Project.find(params[:invitable_id])
     end
     
-    invite = Invite.send!(current_user, target_user, '', invitable)
+    invite = Invite.send!(current_user, target_user, params[:note], invitable)
     
     respond_to do |format|
-      format.json { render :json => invite }
+      format.json { render :json => [invite.to_rest] }
     end
   end
   
   # DELETE /invites
   #   delete an invite, only possible if the current user created the invite
   def destroy
-    raise PermissionViolation unless User.destroyable_by?(current_user)
+    invite = current_user.sent_invites.find(params[:id])
+    raise PermissionViolation unless invite.destroyable_by?(current_user)
     
-    invite = current_user.sent_invites.find(params[:invite_id])
     invite.delete
     
     respond_to do |format|
-      format.json do
-      end
+      format.json { render :json => [{'status' => 'ok'}]}
     end
   end
   

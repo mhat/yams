@@ -70,11 +70,7 @@ module YAMS
     # Permissions: An actor may view this _joinable_ if it is public, if they
     # are the owner, if they are a member or if they have an invite.
     def viewable_by?(actor)
-      return true if joinable.public?  \
-        || joinable.owner?(actor)      \
-        || joinable.has_member?(actor) \
-        || joinable.has_invite?(actor) 
-        
+      return true if public? || owner?(actor) || has_member?(actor) || has_invite?(actor)
       return false
     end
     
@@ -83,6 +79,13 @@ module YAMS
       return true if actor == owner
       return false
     end
+    
+    # Returns a sanitized hash of this _Joinable_. There's nothing to sanitize
+    # in _Joinable_ right now so this method returns all attributes.
+    def to_rest
+      return attributes
+    end
+    
     
     def self.included(base)
       base.class_eval do
@@ -107,10 +110,7 @@ module YAMS
         ## callbacks
         after_create   :add_owner_as_member
         before_destroy :remove_all_members
-        
-        ## enable restful permissions
-        has_restful_permissions
-        
+                
         ## private instance methods
         private
         

@@ -13,18 +13,18 @@ class MembershipsController < ApplicationController
     
     
     ## a little work to make sure we're only given valid types
-    joinable_type = YAMS.arrayify(params[:type]).select {
+    joinable_type = YAMS::Util.arrayify(params[:type]).select {
       |type|
       allowed_type_parameters.select { |atype| atype==type }
     }
     
     ## if no valid types were presented, use all of the defaults
-    joinable_type = allawed_type_parameters if joinable_type.size == 0
+    joinable_type = allowed_type_parameters if joinable_type.size == 0
     
     ## collect the joinables, e.g. events, groups & projects
     response = joinable_type.map { |type| 
-      user.joinable_by_class(type_parameter_to_class(type))
-    }.flatten
+      current_user.joinable_by_class(type_parameter_to_class(type))
+    }.flatten.map { |joinable| joinable.to_rest }
     
     respond_to do |format|
       format.json { render :json => response }
@@ -60,7 +60,7 @@ class MembershipsController < ApplicationController
   #
   def destroy
     member   = User.find(params[:member_id])
-    joinable = type_parameter_to_class(params[:type].find(params[:id]))
+    joinable = type_parameter_to_class(params[:type]).find(params[:id])
     
     raise PermissionViolation unless joinable.member_removeable_by?(member, current_user)
     
